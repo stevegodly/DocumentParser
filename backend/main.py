@@ -1,18 +1,17 @@
-from flask import request, jsonify
-from config import app,aadhar_table
+from flask import request, jsonify,send_from_directory
+from config import app,aadhar_table,pan_table
 from flask_cors import CORS
 from spaCy_util import process_text
 from ocr_util import extract_text
 from layoutlm import classify_doc
 import os
 from werkzeug.utils import secure_filename
-from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError,PyMongoError
 
 CORS(app, resources={r"/*": {"origins": "host://5173"}})
 
-UPLOAD_FOLDER='D:/docParser/backend/upload/'
-CLASSIFY_FOLDER='D:/docParser/backend/classify/'
+UPLOAD_FOLDER='D:/DocumentParser/backend/uploads/'
+CLASSIFY_FOLDER='D:/DocumentParser/backend/classify/'
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['CLASSIFY_FOLDER']= CLASSIFY_FOLDER
@@ -84,35 +83,46 @@ def retrieve_entities():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-@app.route('/get_record', methods=['GET'])
+@app.route('/get_record/', methods=['GET'])
 def get_record():
     pan_record={}
     aadhar_record={}
-    if 'name' in request.args:
-        name = request.args.get('name')
-        aadhar_record=aadhar_table.find_one({'name':name})
-        pan_record=pan_table.find({'name':name})
 
-    elif 'aadhar_no' in request.args:
-        aadhar_no = request.args.get('aadhar_no')
-        aadhar_record=aadhar_table.find_one({'aadhar_no':aadhar_no})
+    name=request.args.get('name')
+    aadhar_no=request.args.get('aadhar_no')
+    pan_no=request.args.get('pan_no')
 
-    elif 'pan_no' in request.args:
-        pan_no = request.args.get('pan_no')
-        pan_record=aadhar_table.find_one({'pan_no':pan_no})
+    if name:
+        aadhar_record=list(aadhar_table.find({'name':name},{"_id": 0}))
+        pan_record=list(pan_table.find({'name':name},{"_id": 0}))
+
+    elif aadhar_no:
+        aadhar_record=list(aadhar_table.find({'aadhar_no':aadhar_no},{"_id": 0}))
+
+    elif pan_no:
+        pan_record=list(aadhar_table.find({'pan_no':pan_no},{"_id": 0}))
 
     record=[aadhar_record,pan_record]
     return jsonify(record)
 
+@app.route('/uploads/<path:filename>',methods=['GET'])
+def serve_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 def insert_aadhar_table(entities,saved_path):
     print("entities:",entities)
     try:
+        local_prefix = "D:/DocumentParser/backend"
+        url_prefix = "http://127.0.0.1:5000"
+    
+    # Replace the local prefix with the URL prefix
+        url_path = saved_path.replace(local_prefix, url_prefix)
         new_entity = {
             'name': entities.get('NAME'),
             'gender': entities.get('GENDER'),
             'dob': entities.get('DOB'),
             'aadhar_no': entities.get('AADHAR_NO'),
-            'image_path': saved_path
+            'image_path': url_path
         }
         result = aadhar_table.insert_one(new_entity)
         print(f"New entity added successfully with id: {result.inserted_id}")

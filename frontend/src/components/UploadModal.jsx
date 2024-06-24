@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState,useEffect } from 'react';
 import axios from 'axios'
 import {UserContext} from './UserContext'
 import Loader from './Scanner'
@@ -11,6 +11,13 @@ const UploadModal = () => {
 
   const {setEntities}=useContext(UserContext)
 
+  useEffect(() => {
+    if (selectedFile) {
+      console.log("selected file:", selectedFile);
+      sendDataToServer();
+    }
+  }, [selectedFile]);
+
   const fetchEntities = async () => {
     setLoading(true)
     const response = await axios.get("http://127.0.0.1:5000/retrieve");
@@ -22,7 +29,7 @@ const UploadModal = () => {
   }
 
   const sendDataToServer = async () => {
-    console.log("reached here")
+    console.log("sentdataserver")
     setLoading(true)
     if (!selectedFile) {
       console.error("No file selected");
@@ -75,7 +82,6 @@ const UploadModal = () => {
   const handleFileChange = (event) => {
     console.log("reached filechange")
     setSelectedFile(event.target.files[0])
-    sendDataToServer()
   };
 
 

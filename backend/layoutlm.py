@@ -18,7 +18,7 @@ processor = LayoutLMv2Processor(feature_extractor, tokenizer)
 
 id2label={0:'Aadhar',1:'Pan'}
 def extract_english_text(mixed_text):
-    english_pattern = r'[A-Za-z0-9\s.,!?/-]+'
+    english_pattern = r'[A-Za-z0-9/s.,!?/-]+'
 
     english_text_list = re.findall(english_pattern, mixed_text)
 
@@ -55,7 +55,7 @@ def preprocess_image(path):
     return pillow_image, texts, boxes    
 
 def classify_doc(path):
-    model.load_state_dict(torch.load('D:/docParser/backend/model.pth'))
+    model.load_state_dict(torch.load('D:/DocumentParser/backend/model.pth'))
     pillow_image, texts, boxes = preprocess_image(path)
 
     encoded_inputs = processor(pillow_image, texts, boxes=boxes,return_tensors="pt")

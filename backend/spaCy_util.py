@@ -1,5 +1,5 @@
 import spacy
-nlp_ner = spacy.load("D:/docParser/backend/model-best")
+nlp_ner = spacy.load("D:/DocumentParser/backend/model-best")
 def process_text(text):
     print("finished loading spacy")
     doc=nlp_ner(text)
