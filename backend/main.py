@@ -70,16 +70,25 @@ def upload_file():
         print('saved_path:',saved_path)
         text=extract_text(saved_path)  
         entities = process_text(text)
-        insert_aadhar_table(entities,saved_path)
+        if "AADHAR_NO" in entities:
+            insert_aadhar_table(entities,saved_path)
+        else:
+            print("entered else")
+            insert_pan_table(entities,saved_path)    
         return jsonify({'message': 'File successfully processed'}), 200
     else:
         return jsonify({'error': 'File processing failed'}), 500
 
-@app.route('/retrieve',methods=['GET'])
+@app.route('/retrieve/',methods=['GET'])
 def retrieve_entities():
     try:
-        entities = list(aadhar_table.find({}, {"_id": 0}))
-        return jsonify(entities)
+        type=request.args.get("type")
+        if type=="aadhar":
+            entities = list(aadhar_table.find({}, {"_id": 0}))
+            return jsonify(entities)
+        elif type=="pan":
+            entities = list(pan_table.find({}, {"_id": 0}))
+            return jsonify(entities)
     except Exception as e:
         return jsonify({"error": str(e)})
 
@@ -108,6 +117,31 @@ def get_record():
 @app.route('/uploads/<path:filename>',methods=['GET'])
 def serve_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
+def insert_pan_table(entities,saved_path):
+    print("entities:",entities)
+    try:
+        local_prefix = "D:/DocumentParser/backend"
+        url_prefix = "http://127.0.0.1:5000"
+    
+    # Replace the local prefix with the URL prefix
+        url_path = saved_path.replace(local_prefix, url_prefix)
+        new_entity = {
+            'name': entities.get('NAME'),
+            'father_name': entities.get('FATHER_NAME'),
+            'dob': entities.get('DOB'),
+            'pan': entities.get('PAN'),
+            'image_path': url_path
+        }
+        result = pan_table.insert_one(new_entity)
+        print(f"New entity added successfully with id: {result.inserted_id}")
+    except DuplicateKeyError as e:
+        print(f"Error occurred: Duplicate key error - {e}")
+    except PyMongoError as e:
+        print(f"An error occurred: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")    
 
 def insert_aadhar_table(entities,saved_path):
     print("entities:",entities)

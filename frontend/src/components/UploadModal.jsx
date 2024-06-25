@@ -1,7 +1,6 @@
 import { useContext, useState,useEffect } from 'react';
 import axios from 'axios'
 import {UserContext} from './UserContext'
-import Loader from './Scanner'
 
 const UploadModal = () => {
   const [selectedFile, setSelectedFile] = useState(null);
