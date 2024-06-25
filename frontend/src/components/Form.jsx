@@ -35,7 +35,7 @@ const DarkForm = () => {
     <div className="dark:bg-gray-900 h-full w-[500px] flex items-center justify-center">
         {showModal && <RecordModal entities={entities} document="Aadhar" onCloseModal={() => setShowModal(false)}/>}
       <form className="bg-gray-800 p-6 rounded-lg space-y-9 h-[500px]">
-        <label className="mt-5 text-xl text-gray-400 font-semi-bold">Check for records by entering any of the fields :</label>
+        <label className="mt-5 text-xl text-gray-400 font-semi-bold">Check for records by entering any of the fields</label>
         <div className="mt- space-y-1">
           <label className="text-gray-300">Name </label>
           <input
