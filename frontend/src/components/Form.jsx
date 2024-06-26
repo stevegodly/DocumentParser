@@ -1,14 +1,15 @@
 import { useState ,useContext} from 'react';
-import {UserContext} from './UserContext'
 import axios from 'axios'
 import RecordModal from './RecordModal'
+import Loader from './loader'
 
 const DarkForm = () => {
+  const empty=[]
   const [name, setName] = useState('');
   const [loading,setLoading]=useState(false)
   const [adhno, setAdhno] = useState('');
   const [panno, setPanno] = useState('');
-  const [showModal,setShowModal]=useState(true)
+  const [showModal,setShowModal]=useState(false)
   const [panEntities,setPanEntities]=useState([])
   const [aadharEntities,setAadharEntities]=useState([])
 
@@ -19,8 +20,8 @@ const DarkForm = () => {
         const response = await axios.get(`http://127.0.0.1:5000/get_record/?name=${name}&aadhar_no=${adhno}&pan_no=${panno}`);
         const data = response.data;
         console.log("data fetched:",data)
-          setAadharEntities(data[0][0]);
-          setPanEntities(data[1][0])
+          if(data[0][0]) setAadharEntities(data[0][0]);
+          else if(data[1][0]) setPanEntities(data[1][0]);
         setLoading(false)
         setShowModal(true)
         console.log("Records fetched:",data)
@@ -33,7 +34,11 @@ const DarkForm = () => {
 
   return (
     <div className="dark:bg-gray-900 h-full w-[500px] flex items-center justify-center">
-        {showModal && <RecordModal aadharEntities={aadharEntities}  panEntities={panEntities} onCloseModal={() => setShowModal(false)}/>}
+      {loading && (<Loader/>)}
+      {showModal && <RecordModal aadharEntities={aadharEntities}  panEntities={panEntities} onCloseModal={() => {setShowModal(false)
+        setAadharEntities(empty)
+        setPanEntities(empty)}
+      }/>}
       <form className="bg-gray-800 p-6 rounded-lg space-y-9 h-[500px]">
         <label className="mt-5 text-xl text-gray-400 font-semi-bold">Check for records by entering any of the fields :</label>
         <div className="mt- space-y-1">

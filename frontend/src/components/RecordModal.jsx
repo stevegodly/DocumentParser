@@ -9,7 +9,7 @@ const Modal = ({aadharEntities,panEntities,onCloseModal}) => {
       >
         <div
           onClick={(event) => event.stopPropagation()}
-          className='w-[700px] h-[600px] bg-gray-300 rounded-xl p-4 flex flex-col relative'
+          className='w-[800px] h-[600px] bg-gray-300 rounded-xl p-4 flex flex-row justify-evenly relative'
         >
           <button
             className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
@@ -34,7 +34,7 @@ const Modal = ({aadharEntities,panEntities,onCloseModal}) => {
             <div className="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
               <h3 className="text-2xl font-bold">Aadhar</h3>
             </div>
-            <img src={aadharEntities.image_path} alt="hello" height="200px" width="300px" />
+            {aadharEntities.image_path && <img src={aadharEntities.image_path} alt="hello" height="200px" width="300px" />}
             <div className="relative p-6 flex-auto">
               <div className="flex justify-evenly mb-4">
                 <div className="flex justify-center bg-gray-800 rounded-md overflow-hidden shadow-lg w-[160px] p-2">

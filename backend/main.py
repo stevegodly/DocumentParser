@@ -1,10 +1,11 @@
 from flask import request, jsonify,send_from_directory
 from config import app,aadhar_table,pan_table
 from flask_cors import CORS
-from spaCy_util import process_text
-from ocr_util import extract_text
+from spaCy_util import process_text,process_pan
+from ocr_util import extract_text,extract_pan
 from layoutlm import classify_doc
 import os
+import pymongo
 from werkzeug.utils import secure_filename
 from pymongo.errors import DuplicateKeyError,PyMongoError
 
@@ -21,6 +22,12 @@ def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def make_serializable(document):
+    if document is None:
+        return None
+    document['_id'] = str(document['_id'])  # Convert ObjectId to string
+    return document
 
 @app.route("/classify",methods=["POST"])
 def classify():
@@ -68,14 +75,20 @@ def upload_file():
         file.save(saved_path)
         print("entered file saving")
         print('saved_path:',saved_path)
-        text=extract_text(saved_path)  
-        entities = process_text(text)
-        if "AADHAR_NO" in entities:
+        label=classify_doc(saved_path)
+
+        if label=="aadhar":
+            text=extract_text(saved_path)  
+            entities = process_text(text)
             insert_aadhar_table(entities,saved_path)
-        else:
+            
+        elif label=="pan":
             print("entered else")
-            insert_pan_table(entities,saved_path)    
-        return jsonify({'message': 'File successfully processed'}), 200
+            text=extract_pan(saved_path)  
+            entities = process_pan(text)
+            insert_pan_table(entities,saved_path)  
+
+        return jsonify({'entities':entities,'label':label,'message': 'File successfully processed'}), 200
     else:
         return jsonify({'error': 'File processing failed'}), 500
 
@@ -91,6 +104,19 @@ def retrieve_entities():
             return jsonify(entities)
     except Exception as e:
         return jsonify({"error": str(e)})
+
+@app.route('/fetch/',methods=['GET'])
+def fetch_entities():
+    try:
+        type=request.args.get("type")
+        if type=="aadhar":
+            entities = aadhar_table.find_one(sort=[('_id', pymongo.DESCENDING)])
+        elif type=="pan":
+            entities = pan_table.find_one(sort=[('_id', pymongo.DESCENDING)])
+        return jsonify(make_serializable(entities))
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
 
 @app.route('/get_record/', methods=['GET'])
 def get_record():
@@ -109,7 +135,7 @@ def get_record():
         aadhar_record=list(aadhar_table.find({'aadhar_no':aadhar_no},{"_id": 0}))
 
     elif pan_no:
-        pan_record=list(aadhar_table.find({'pan_no':pan_no},{"_id": 0}))
+        pan_record=list(pan_table.find({'pan':pan_no},{"_id": 0}))
 
     record=[aadhar_record,pan_record]
     return jsonify(record)

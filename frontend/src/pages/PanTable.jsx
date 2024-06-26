@@ -1,18 +1,28 @@
-import { useEffect } from "react";
+import { useState,useEffect } from "react";
 import axios from 'axios'
 
 const PanTable=()=>{
-    useEffect(async()=>{
-        setLoading(true)
-        const response = await axios.get("http://127.0.0.1:5000/retrieve?type=pan");
-        const data = response.data;
-        console.log("data fetched:",data)
-        setEntities(data);
-        setLoading(false)
-        console.log("entities fetched:",data)
-    })
+  const [entities,setEntities]=useState([])
+  const [loading,setLoading]=useState(false)
+
+  useEffect(() => {
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get("http://127.0.0.1:5000/retrieve?type=pan");
+            const data = response.data;
+            console.log("data fetched:", data);
+            setEntities(data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    fetchData();
+},[]);
   console.log("entered")
-  const headers = entities.length > 0 ? Object.keys(entities[0]) : [];
   if(entities) console.log("entities:",entities)
     return (
   <div className="container mx-auto py-8">

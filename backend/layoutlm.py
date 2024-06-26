@@ -16,7 +16,7 @@ feature_extractor = LayoutLMv2FeatureExtractor(apply_ocr=False)
 tokenizer = LayoutLMv2Tokenizer.from_pretrained("microsoft/layoutlmv2-base-uncased")
 processor = LayoutLMv2Processor(feature_extractor, tokenizer)
 
-id2label={0:'Aadhar',1:'Pan'}
+id2label={0:'aadhar',1:'pan'}
 def extract_english_text(mixed_text):
     english_pattern = r'[A-Za-z0-9/s.,!?/-]+'
 
