@@ -154,10 +154,10 @@ def insert_pan_table(entities,saved_path):
     # Replace the local prefix with the URL prefix
         url_path = saved_path.replace(local_prefix, url_prefix)
         new_entity = {
-            'name': entities.get('NAME'),
-            'father_name': entities.get('FATHER_NAME'),
-            'dob': entities.get('DOB'),
-            'pan': entities.get('PAN'),
+            'name': entities.get('NAME').replace('|', ''),
+            'father_name': entities.get('FATHER_NAME').replace('|', ''),
+            'dob': entities.get('DOB').replace('|', ''),
+            'pan': entities.get('PAN').replace('|', ''),
             'image_path': url_path
         }
         result = pan_table.insert_one(new_entity)
