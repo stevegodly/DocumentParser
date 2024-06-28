@@ -1,15 +1,19 @@
-import { useContext, useState,useEffect } from 'react';
+import { useState,useEffect } from 'react';
 import axios from 'axios'
-import {UserContext} from './UserContext'
-import Loader from './Scanner'
+import Loader from './loader'
+import RecordModal from './RecordModal'
+
 
 const UploadModal = () => {
+  const empty=[]
   const [selectedFile, setSelectedFile] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [document,setDocument]=useState(" ")
+  const [loading, setLoading] = useState(false);
+  const [document,setDocument]=useState("pan")
+  const [panEntities,setPanEntities]=useState([])
+  const [aadharEntities,setAadharEntities]=useState([])
 
-  const {setEntities}=useContext(UserContext)
+
 
   useEffect(() => {
     if (selectedFile) {
@@ -20,11 +24,13 @@ const UploadModal = () => {
 
   const fetchEntities = async () => {
     setLoading(true)
-    const response = await axios.get("http://127.0.0.1:5000/retrieve");
+    const response = await axios.get(`http://127.0.0.1:5000/fetch/?type=${document}`);
     const data = response.data;
     console.log("data fetched:",data)
-    setEntities(data);
+    if(document=="pan") setPanEntities(data);
+    else setAadharEntities(data)
     setLoading(false)
+    setShowModal(true)
     console.log("entities fetched:",data)
   }
 
@@ -35,7 +41,6 @@ const UploadModal = () => {
       console.error("No file selected");
       return;
     }
-    setLoading(true)
     const formData = new FormData();
     formData.append("file", selectedFile);
 
@@ -46,7 +51,8 @@ const UploadModal = () => {
           body: formData
       });
       const result = await response.json();
-      console.log(result);
+      console.log(result['label']);
+      setDocument(result['label'].toLowerCase())
     } catch (error) {
         console.error("Error:", error);
     }
@@ -87,6 +93,12 @@ const UploadModal = () => {
 
   return (
     <div className="flex flex-col justify-center items-center">
+      {loading && (<Loader/>)}
+      {showModal && <RecordModal aadharEntities={aadharEntities}  panEntities={panEntities} onCloseModal={() => {
+        setShowModal(false)
+        setAadharEntities(empty)
+        setPanEntities(empty)
+      }}/>}
       <div className="bg-gray-800 rounded-lg shadow-lg p-6 w-[900px] h-[450px]">
         <div className="flex flex-col justify-evenly items-center mb-1">
           <h2 className="text-xl text-slate-400 font-bold">Upload Documents</h2>
